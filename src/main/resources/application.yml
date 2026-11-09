@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: hail
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hail_db
+    username: hail_user
+    password: hail_password
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always # Shows the DB ping result

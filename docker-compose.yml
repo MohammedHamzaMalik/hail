@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    container_name: hail-postgres
+    environment:
+      POSTGRES_USER: hail_user
+      POSTGRES_PASSWORD: hail_password
+      POSTGRES_DB: hail_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hail_user -d hail_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
