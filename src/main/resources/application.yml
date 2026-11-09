@@ -18,3 +18,7 @@ management:
   endpoint:
     health:
       show-details: always # Shows the DB ping result
+
+logging:
+  level:
+    org.flywaydb: DEBUG
