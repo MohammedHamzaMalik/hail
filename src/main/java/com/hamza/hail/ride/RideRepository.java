@@ -39,6 +39,17 @@ public class RideRepository {
                 .optional();
     }
 
+    public int assignDriver(UUID rideId, UUID driverId) {
+        return jdbcClient.sql("""
+                UPDATE rides
+                SET driver_id = :driverId, status = 'ASSIGNED', updated_at = CURRENT_TIMESTAMP
+                WHERE id = :rideId AND status = 'REQUESTED'
+                """)
+                .param("driverId", driverId)
+                .param("rideId", rideId)
+                .update();
+    }
+
     public record RideRecord(
             UUID id,
             UUID driverId,
