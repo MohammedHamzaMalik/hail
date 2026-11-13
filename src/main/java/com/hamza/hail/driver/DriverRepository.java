@@ -50,6 +50,16 @@ public class DriverRepository {
                 .update();
     }
 
+    public int markBusy(UUID id) {
+        return jdbcClient.sql("""
+                UPDATE drivers
+                SET status = 'BUSY', updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id AND status = 'ONLINE'
+                """)
+                .param("id", id)
+                .update();
+    }
+
     public Optional<DriverRecord> findById(UUID id) {
         return jdbcClient.sql("SELECT id, lat, lng, status, created_at, updated_at FROM drivers WHERE id = :id")
                 .param("id", id)
