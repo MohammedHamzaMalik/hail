@@ -1,6 +1,7 @@
 package com.hamza.hail.ride;
 
 import com.hamza.hail.driver.DriverRepository;
+import com.hamza.hail.ride.dto.RequestRideRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +13,12 @@ public class RideService {
 
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
+    private final RideStateMachine rideStateMachine;
 
-    public RideService(RideRepository rideRepository, DriverRepository driverRepository) {
+    public RideService(RideRepository rideRepository, DriverRepository driverRepository,  RideStateMachine rideStateMachine) {
         this.rideRepository = rideRepository;
         this.driverRepository = driverRepository;
+        this.rideStateMachine = rideStateMachine;
     }
 
     public Optional<UUID> assignDriverNaive(UUID rideId, double pickupLat, double pickupLng, double radiusKm) {
@@ -55,5 +58,53 @@ public class RideService {
         rideRepository.assignDriver(rideId, driverId);
 
         return Optional.of(driverId);
+    }
+
+    public RideRepository.RideRecord requestRide(RequestRideRequest request) {
+        UUID rideId = UUID.randomUUID();
+        rideRepository.save(
+                rideId,
+                request.pickupLat(),
+                request.pickupLng(),
+                RideStatus.REQUESTED.name(),
+                request.idempotencyKey(),
+                request.origin()
+        );
+        return rideRepository.findById(rideId)
+                .orElseThrow(() -> new IllegalStateException("Failed to retrieve created ride"));
+    }
+
+    @Transactional
+    public void completeRide(UUID rideId) {
+        RideRepository.RideRecord ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new IllegalArgumentException("Ride not found"));
+
+        // Validate transition through state machine
+        rideStateMachine.validateTransition(ride.status(), RideStatus.COMPLETED);
+
+        // Update ride status
+        rideRepository.updateStatus(rideId, RideStatus.COMPLETED);
+
+        // Free the driver back to ONLINE
+        if (ride.driverId() != null) {
+            driverRepository.markOnline(ride.driverId());
+        }
+    }
+
+    @Transactional
+    public void cancelRide(UUID rideId) {
+        RideRepository.RideRecord ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new IllegalArgumentException("Ride not found"));
+
+        // Validate transition through state machine
+        rideStateMachine.validateTransition(ride.status(), RideStatus.CANCELLED);
+
+        // Update ride status
+        rideRepository.updateStatus(rideId, RideStatus.CANCELLED);
+
+        // Free the driver back to ONLINE only if a driver was assigned
+        if (ride.driverId() != null) {
+            driverRepository.markOnline(ride.driverId());
+        }
     }
 }
