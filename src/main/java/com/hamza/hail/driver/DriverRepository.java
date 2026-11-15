@@ -150,6 +150,16 @@ public class DriverRepository {
                 .optional();
     }
 
+    public int markOnline(UUID id) {
+        return jdbcClient.sql("""
+                UPDATE drivers
+                SET status = 'ONLINE', updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id AND status = 'BUSY'
+                """)
+                .param("id", id)
+                .update();
+    }
+
     public record DriverRecord(
             UUID id,
             double lat,
