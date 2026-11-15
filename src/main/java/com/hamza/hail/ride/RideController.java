@@ -13,28 +13,17 @@ import java.util.UUID;
 public class RideController {
 
     private final RideRepository rideRepository;
+    private final RideService rideService;
 
-    public RideController(RideRepository rideRepository) {
+    public RideController(RideRepository rideRepository, RideService rideService) {
         this.rideRepository = rideRepository;
+        this.rideService = rideService;
     }
 
     @PostMapping
     public ResponseEntity<RideRepository.RideRecord> requestRide(@RequestBody @Valid RequestRideRequest request) {
-        UUID rideId = UUID.randomUUID();
-        // Request creates a ride in REQUESTED status without matching yet
-        rideRepository.save(
-                rideId,
-                request.pickupLat(),
-                request.pickupLng(),
-                RideStatus.REQUESTED.name(),
-                request.idempotencyKey(),
-                request.origin()
-        );
-
-        RideRepository.RideRecord createdRide = rideRepository.findById(rideId)
-                .orElseThrow(() -> new IllegalStateException("Failed to retrieve created ride"));
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdRide);
+        RideRepository.RideRecord ride = rideService.requestRide(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ride);
     }
 
     @GetMapping("/{id}")
@@ -42,5 +31,17 @@ public class RideController {
         return rideRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Void> completeRide(@PathVariable UUID id) {
+        rideService.completeRide(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelRide(@PathVariable UUID id) {
+        rideService.cancelRide(id);
+        return ResponseEntity.noContent().build();
     }
 }
