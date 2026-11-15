@@ -50,6 +50,17 @@ public class RideRepository {
                 .update();
     }
 
+    public int updateStatus(UUID rideId, RideStatus status) {
+        return jdbcClient.sql("""
+                UPDATE rides
+                SET status = :status, updated_at = CURRENT_TIMESTAMP
+                WHERE id = :rideId
+                """)
+                .param("status", status.name())
+                .param("rideId", rideId)
+                .update();
+    }
+
     public record RideRecord(
             UUID id,
             UUID driverId,
