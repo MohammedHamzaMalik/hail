@@ -22,7 +22,12 @@ public class RideController {
 
     @PostMapping
     public ResponseEntity<RideRepository.RideRecord> requestRide(@RequestBody @Valid RequestRideRequest request) {
-        RideRepository.RideRecord ride = rideService.requestRide(request);
+        RideRepository.RideRecord ride = rideService.requestRideIdempotent(
+                request.pickupLat(),
+                request.pickupLng(),
+                request.idempotencyKey(),
+                request.origin()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(ride);
     }
 
