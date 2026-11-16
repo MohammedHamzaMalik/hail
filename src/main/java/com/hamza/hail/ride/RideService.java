@@ -107,4 +107,27 @@ public class RideService {
             driverRepository.markOnline(ride.driverId());
         }
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public RideRepository.RideRecord requestRideIdempotent(double pickupLat, double pickupLng, String idempotencyKey, String origin) {
+        // Check if a ride with this idempotency key already exists
+        Optional<RideRepository.RideRecord> existing = rideRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        // Otherwise, create a new ride
+        UUID rideId = UUID.randomUUID();
+        rideRepository.save(
+                rideId,
+                pickupLat,
+                pickupLng,
+                RideStatus.REQUESTED.name(),
+                idempotencyKey,
+                origin
+        );
+
+        return rideRepository.findById(rideId)
+                .orElseThrow(() -> new IllegalStateException("Failed to retrieve created ride"));
+    }
 }
