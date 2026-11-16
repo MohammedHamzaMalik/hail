@@ -39,6 +39,16 @@ public class RideRepository {
                 .optional();
     }
 
+    public Optional<RideRecord> findByIdempotencyKey(String idempotencyKey) {
+        return jdbcClient.sql("""
+                SELECT id, driver_id, pickup_lat, pickup_lng, status, idempotency_key, origin, created_at, updated_at
+                FROM rides WHERE idempotency_key = :idempotencyKey
+                """)
+                .param("idempotencyKey", idempotencyKey)
+                .query(RideRecord.class)
+                .optional();
+    }
+
     public int assignDriver(UUID rideId, UUID driverId) {
         return jdbcClient.sql("""
                 UPDATE rides
