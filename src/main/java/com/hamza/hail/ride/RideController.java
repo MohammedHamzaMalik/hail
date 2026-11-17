@@ -1,6 +1,8 @@
 package com.hamza.hail.ride;
 
 import com.hamza.hail.ride.dto.RequestRideRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,8 @@ public class RideController {
         this.rideService = rideService;
     }
 
+    @Operation(summary = "Request a ride", description = "Creates a ride request idempotently. Matches via spatial bounding box and locks a driver.")
+    @ApiResponse(responseCode = "201", description = "Ride requested successfully")
     @PostMapping
     public ResponseEntity<RideRepository.RideRecord> requestRide(@RequestBody @Valid RequestRideRequest request) {
         RideRepository.RideRecord ride = rideService.requestRideIdempotent(
@@ -38,6 +42,7 @@ public class RideController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Complete a ride", description = "Transitions ride to COMPLETED and frees driver back to ONLINE.")
     @PatchMapping("/{id}/complete")
     public ResponseEntity<Void> completeRide(@PathVariable UUID id) {
         rideService.completeRide(id);

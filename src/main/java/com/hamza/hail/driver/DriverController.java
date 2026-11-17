@@ -2,6 +2,8 @@ package com.hamza.hail.driver;
 
 import com.hamza.hail.driver.dto.UpdateLocationRequest;
 import com.hamza.hail.driver.dto.UpdateStatusRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ public class DriverController {
     }
 
     // Convenience endpoint for setting up test data and mock drivers
+    @Operation(summary = "Register a new driver", description = "Creates a driver record with initial coordinates and status.")
+    @ApiResponse(responseCode = "201", description = "Driver successfully registered")
     @PostMapping
     public ResponseEntity<Map<String, Object>> registerDriver(@RequestBody @Valid RegisterDriverRequest request) {
         UUID id = request.id() != null ? request.id() : UUID.randomUUID();
@@ -28,6 +32,7 @@ public class DriverController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id, "status", request.status()));
     }
 
+    @Operation(summary = "Update driver availability status", description = "Sets status to OFFLINE, ONLINE, or BUSY.")
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateStatus(
             @PathVariable UUID id,
