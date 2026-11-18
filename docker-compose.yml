@@ -13,3 +13,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  app:
+    build: .
+    container_name: hail-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/hail_db
+      SPRING_DATASOURCE_USERNAME: hail_user
+      SPRING_DATASOURCE_PASSWORD: hail_password
+    ports:
+      - "8080:8080"
