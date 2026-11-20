@@ -84,16 +84,16 @@ public class DriverRepository {
             WHERE status = 'ONLINE'
               AND lat BETWEEN :minLat AND :maxLat
               AND lng BETWEEN :minLng AND :maxLng
-              AND (6371 * acos(
-                  cos(radians(:pickupLat)) * cos(radians(lat)) * cos(radians(lng) - radians(:pickupLng)) +
-                  sin(radians(:pickupLat)) * sin(radians(lat))
-              )) <= :radiusKm
-            ORDER BY (
-                6371 * acos(
-                    cos(radians(:pickupLat)) * cos(radians(lat)) * cos(radians(lng) - radians(:pickupLng)) +
-                    sin(radians(:pickupLat)) * sin(radians(lat))
-                )
-            ) ASC
+              AND (2 * 6371 * asin(sqrt(
+                  power(sin(radians(lat - :pickupLat) / 2), 2) +
+                  cos(radians(:pickupLat)) * cos(radians(lat)) *
+                  power(sin(radians(lng - :pickupLng) / 2), 2)
+              ))) <= :radiusKm
+            ORDER BY (2 * 6371 * asin(sqrt(
+                  power(sin(radians(lat - :pickupLat) / 2), 2) +
+                  cos(radians(:pickupLat)) * cos(radians(lat)) *
+                  power(sin(radians(lng - :pickupLng) / 2), 2)
+            ))) ASC
             LIMIT 1
             """;
 
@@ -124,16 +124,16 @@ public class DriverRepository {
             WHERE status = 'ONLINE'
               AND lat BETWEEN :minLat AND :maxLat
               AND lng BETWEEN :minLng AND :maxLng
-              AND (6371 * acos(
-                  cos(radians(:pickupLat)) * cos(radians(lat)) * cos(radians(lng) - radians(:pickupLng)) +
-                  sin(radians(:pickupLat)) * sin(radians(lat))
-              )) <= :radiusKm
-            ORDER BY (
-                6371 * acos(
-                    cos(radians(:pickupLat)) * cos(radians(lat)) * cos(radians(lng) - radians(:pickupLng)) +
-                    sin(radians(:pickupLat)) * sin(radians(lat))
-                )
-            ) ASC
+              AND (2 * 6371 * asin(sqrt(
+                  power(sin(radians(lat - :pickupLat) / 2), 2) +
+                  cos(radians(:pickupLat)) * cos(radians(lat)) *
+                  power(sin(radians(lng - :pickupLng) / 2), 2)
+              ))) <= :radiusKm
+            ORDER BY (2 * 6371 * asin(sqrt(
+                  power(sin(radians(lat - :pickupLat) / 2), 2) +
+                  cos(radians(:pickupLat)) * cos(radians(lat)) *
+                  power(sin(radians(lng - :pickupLng) / 2), 2)
+            ))) ASC
             LIMIT 1
             FOR UPDATE SKIP LOCKED
             """;
