@@ -69,4 +69,19 @@ class NearestDriverIntegrationTest {
 
         assertThat(nearest).isEmpty();
     }
+
+    @Test
+    void handlesIdenticalRiderAndDriverCoordinatesWithoutOverflow() {
+        double exactLat = 60.1719;
+        double exactLng = 24.9414;
+
+        UUID driverId = UUID.randomUUID();
+        driverRepository.save(driverId, exactLat, exactLng, "ONLINE");
+
+        Optional<DriverRepository.DriverRecord> nearest =
+                driverRepository.findNearestAvailableDriver(exactLat, exactLng, 5.0);
+
+        assertThat(nearest).isPresent();
+        assertThat(nearest.get().id()).isEqualTo(driverId);
+    }
 }
